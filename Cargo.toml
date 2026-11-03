@@ -1,6 +1,11 @@
 [package]
 name = "r-expert"
 version = "0.1.0"
+description = "TUI manager catalog and files written in Rust."
+authors = ["Sweuqqq"]
+license = "MIT"
 edition = "2024"
 
 [dependencies]
+crossterm = "0.29.0"
+ratatui = "0.30.2"
