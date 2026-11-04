@@ -5,16 +5,16 @@ use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
-    layout::Rect,
+    layout::{Constraint, Direction, Layout, Rect},
     style::Stylize,
     symbols::border,
     text::{Line, Text},
-    widgets::{Block, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 #[derive(Debug, Default)]
 pub struct App {
-    counter: u8,
+    path: String,
     exit: bool,
 }
 
@@ -33,6 +33,20 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
+        let layout = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![Constraint::Percentage(40), Constraint::Percentage(60)])
+            .split(frame.area());
+
+        frame.render_widget(
+            Paragraph::new("Left").block(Block::new().borders(Borders::ALL)),
+            layout[0],
+        );
+        frame.render_widget(
+            Paragraph::new("Right").block(Block::new().borders(Borders::ALL)),
+            layout[1],
+        );
+
         frame.render_widget(self, frame.area());
     }
 
@@ -40,11 +54,9 @@ impl App {
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 match (key.code, key.modifiers) {
-                    (KeyCode::Char('q') | KeyCode::Char('Q'), KeyModifiers::CONTROL) => {
+                    (KeyCode::Char('c') | KeyCode::Char('C'), KeyModifiers::CONTROL) => {
                         self.exit = true
                     }
-                    (KeyCode::Left, _) => self.counter = self.counter.saturating_sub(1),
-                    (KeyCode::Right, _) => self.counter = self.counter.saturating_add(1),
                     _ => {}
                 }
             }
@@ -55,28 +67,13 @@ impl App {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Line::from(" Counter App Tutorial ".bold());
-        let instructions = Line::from(vec![
-            " Decrement ".into(),
-            "<Left>".blue().bold(),
-            " Increment ".into(),
-            "<Right>".blue().bold(),
-            " Quit ".into(),
-            "<Ctrl+Q> ".blue().bold(),
-        ]);
+        let title = Line::from(" r-expert ".bold() + " | ".into() + self.path.to_string().yellow());
+        let instructions = Line::from(vec![" Quit ".into(), "<Ctrl+C> ".blue().bold()]);
         let block = Block::bordered()
-            .title(title.centered())
+            .title(title)
             .title_bottom(instructions.centered())
             .border_set(border::THICK);
 
-        let counter_text = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            self.counter.to_string().yellow(),
-        ])]);
-
-        Paragraph::new(counter_text)
-            .centered()
-            .block(block)
-            .render(area, buf);
+        Paragraph::new("").block(block).render(area, buf);
     }
 }
